@@ -1,0 +1,121 @@
+//1. Încărcați într-un df  numele, suma solicitată, suma din depozite și fidelitatea clienților cu vârsta > 35 de ani care au solicitat un credit mai mare de 15.000. Verificați în df dacă suma din depozit este mai mare decât suma solicitată și pentru acești clienți modificați fidelitatea în 5. Salvati setul de date într-un fișier .csv (clienti_leasing.csv).
+
+import pymongo
+import pandas as pd
+from pprint import pprint 
+
+pd.set_option("display.max_columns', 500)
+conn = pymongo.MongoClient("mongodb://37.120.249.57:27017/")
+db = conn["daune_leasing"]
+projection = {"_id": 0,
+		"NUME_CLIENT": 1,		
+		"SUMA_SOLICITATA": 1,
+		"SUMA_DEPOZIT": 1,
+		"FIDELITATE": 1
+		}
+cursor = collection.find({"VARSTA": {'$gt': 35},
+			  "VAL_CREDITE_RON": {'$lt': -15000}}, projection=projection)
+df = pd.DataFrame.from_dict(list(cursor))
+cursor.close()
+df.loc[(df['SUMA_DEPOZIT'] > df['SUMA_SOLICITATA']), 'FIDELITATE'] = 5
+pprint(df)
+df.to_csv('clienti_leasing.csv')
+
+
+//2. Încărcați într-un df  profesia, venitul anual, suma din depozite și suma solicitată pe fiecare profesie. În df adăugați o nouă coloană pentru a calcula gradul de îndatorare pe fiecare profesie (suma_solicitata/(venit_anual+suma_depozit)*100). 
+
+import pymongo
+import pandas as pd
+import matplotlib.pyplot as plt
+from pprint import pprint
+
+pd.set_option("display.max_columns', 500)
+conn = pymongo.MongoClient("mongodb://37.120.249.57:27017/")
+db = conn["daune_leasing"]
+collection = db["clienti_leasing"]
+
+pipeline = [{'$group': {
+	"_id": "$PROFESIA",
+	"VALOARE_VENIT_ANUAL": {'$sum': "$VENIT_ANUAL"},
+	"VALOARE_SUMA_DEPOZIT": {'$sum': "$SUMA_DEPOZIT"},
+	"VALOARE_SUMA_SOLICITATA": {'$sum': "$SUMA_SOLICITATA}
+}},
+	{'$sort': {"_id": 1}}]
+cursor = collection.aggregate(pipeline)
+df = pd.DataFrame.from_dict(list(cursor))
+cursor.close()
+df['GRAD_INDATORARE'] = df['VALOARE_SUMA_SOLICITATA'] / \
+			(df['VALOARE_VENIT_ANUAL'] + df['VALOARE_SUMA_DEPOZIT']) *100
+df = df.sort_values(by='GRAD_INDATORARE')
+pprint(df)
+
+//Reprezentați grafic gradul de îndatorare pe fiecare profesie.
+ 
+df.plot(x='_id', y='GRAD_INDATORARE', rot=0)
+plt.xlabel('PROFESIA')
+plt.ylab('GRAD_INDATORARE')
+plt.show()
+
+
+//3. Încărcați într-un df marca, modelul, valoarea totală și numărul de daune pe fiecare model și marcă fabricate între 2010 și 2012. Afișați numărul de autoturisme pentru care valoarea totală depășește 30.000.
+
+import pymongo
+import pandas as pd
+import matplotlib.pyplot as plt
+from pprint import pprint
+
+pd.set_option("display.max_columns', 500)
+conn = pymongo.MongoClient("mongodb://37.120.249.57:27017/")
+db = conn["daune_leasing"]
+collection = db["clienti_leasing"]
+pipeline = [['$match': {"AN_FABRICATIE": {'$gte': 2010, '$lte': 2012}}},
+	{'$group': {
+		"_id": {'MODEL': "$MODEL", 'MARCA': "$MARCA"},
+		"VALOARE_TOTALA_DAUNA": {'$SUM': "$VALOARE_DAUNA"},
+		"NR_TOTAL_DAUNE": {'$SUM': 1}
+}},
+	{'$sort': {"_id": 1}}
+	]
+cursor = collection.aggregate(pipeline)
+df = pd.DataFrame.from_dict(list(cursor))
+cursor.close()
+df1 = df.loc[(df['VALOARE_TOTALA_DAUNA'] > 30000)]
+nr_autoturisme = len(df.nou_index)
+pprint('Numărul de autoturisme pentru care valoarea totală a daunelor depășește 30.000 este: ' +str(nr_autoturisme))
+
+//Reprezentați grafic modelele care au înregistrat mai mult de 100 de daune.
+
+df_plot = df1.loc[(df1['NR_TOTAL_DAUNE'] > 100)]
+pprint(df1)
+df_plot.plot.bar(x='_id', y='NR_TOTAL_DAUNE', rot=0)
+plt.xlabel('MODEL')
+plt.ylabel('NR_TOTAL_DAUNE')
+plt.show()
+
+
+//4. Încărcați într-un df marca, modelul, anul de fabricație, componenta, prețul total și prețul manoperei pentru autoturismele din mărcile AUDI, BMW, FORD, FIAT. Calculați procentul manoperei din prețul total. 
+
+import pymongo
+import pandas as pd
+import matplotlib.pyplot as plt
+from pprint import pprint
+
+pd.set_option("display.max_columns', 500)
+conn = pymongo.MongoClient("mongodb://37.120.249.57:27017/")
+db = conn["daune_leasing"]
+collection = db["clienti_leasing"]
+projection = {"_id": 0,
+	"MARCA": 1,
+	"MODEL": 1,
+	"AN_FABRICATIE": 1,
+	"COMPONENTA": 1,
+	"PRET_TOTAL": 1,
+	"PRET_MAMOPERA": 1,
+	}
+sort = [("MARCA", 1)]
+cursor = collection.find({"MARCA": {'$in': ["AUDI", "BMW", "FORD", "FIAT"]}},
+				projection=projection, sort=sort)
+df = pd.DataFrame.from_dict(list(cursor))
+cursor.close()
+df['PROCENT_MANOPERA'] = df['PRET_MANOPERA'] / df['PRET_TOTAL'] * 100
+pprint(df)

@@ -1,0 +1,164 @@
+#1. Să se creeze o listă de numere întregi pozitive si negative de 10 elemente.
+#Să se filtreze elementele listei astfel incat acestea sa fie pozitive și
+#să se afișeze lista ordonata crescător.
+
+from random import randint
+lista = [randint(-100,100) for p in range(0, 10)]
+print(lista)
+def pos(lista):
+    return [x for x in lista if x > 0] or None
+lista.sort(reverse = False)
+print(pos(lista))
+
+
+#2. Se da lista de orase de mai jos. Să se realizeze un dictionar care sa grupeze orasele dupa lungimea denumirii. 
+#Dictionarul va avea valorile si cheile ordonate in ordine crescatoare, respectiv alfabetica.
+#lista_o = ['Vaslui','Cluj', 'Iasi', 'Alba', 'Oradea', 'Arad', 'Craiova', 'Mehedinti', 'Bucuresti', 'Orastie’]
+
+lista = ['Vaslui', 'Cluj', 'Iasi', 'Alba', 'Oradea', 'Arad', 'Craiova', 'Mehedinti', 'Bucuresti', 'Orastie']
+print(lista)
+lista.sort(reverse=False)
+print(lista)
+lista_ord = []
+for i in lista:
+    lista_ord.append(len(i))
+    continue
+print(lista_ord)
+dictionar= dict(zip(lista, lista_ord))
+print(dictionar)
+
+
+#3. Se da o listă de liste cu denumiri de electrocasnice si electronice (televizor, frigider, laptop_tip1,laptop_tip2), 
+#prețul și cantitatea acestora. Calculați valoarea fiecărui echipament, adăugați-o în lista fiecarui produs și 
+#sortați în funcție de pret, utilizand functia lambda. Pentru produsele care au pretul mai mare de 3000 si 
+#cantitatea mai mare de 5 produse, se va diminua pretul cu 10%.
+#lista = [['tv', 3500,9], ['frigider', 2500, 4], ['laptop_tip1',5000,5],['laptop_tip2',10000,6]]
+
+lista = [['tv', 3500, 9], ['frigider', 2500, 4], ['laptop_tip1', 5000, 5], ['laptop_tip2', 10000, 6]]
+print(lista)
+for x in lista:
+    valoareEchip = x[1] * x[2]
+    print('valoare', x[0], valoareEchip)
+    x.append(valoareEchip)
+    continue
+print(lista)
+lista.sort(key=lambda j: j[1])
+print(lista)
+for x in lista:
+    if x[1] > 3000:
+        if x[2] > 5:
+            x[1] = x[1] - x[1] * 0.1
+            x[3] = x[1] * x[2]
+            continue
+print(lista)
+
+
+#4. Se dau două liste de liste: lista produse aflate pe stoc (lps cu denumire_produs si cantitate) și 
+#lista produse comandate (lpc cu denumire_produs si cantitate). Să se afiseze numele produselor 
+#care nu au fost comandate. Sa se calculeze diferenta dintre cantitatea aflata pe stoc si cantitatea comandata si 
+#sa se actualizeze cantitatea aflata pe stoc. Daca cantitatea comandata este mai mare decat cantitatea 
+#aflata pe stoc, aceasta va fi egala cu 0. 
+#lps=[['tableta',13], ['tv',50], ['smart_phone',4],['laptop_tip1',41], ['desktop',60], ['tastatura',16], ['monitor32inch',28], ['flipchart',6], ['carioca',200]]
+#lpc=[['tv',52],['laptop_tip1',20], ['desktop',11], ['tastatura',3], ['monitor32inch',11], ['flipchart',1]]
+
+
+lps = [['tableta', 13], ['tv', 50], ['smart_phone', 4], ['laptop_tip1', 41], ['desktop', 60], ['tastatura', 16],
+       ['monitor32inch', 28], ['flipchart', 6], ['carioca', 200]]
+lpc = [['tv', 52], ['laptop_tip1', 20], ['desktop', 11], ['tastatura', 3], ['monitor32inch', 11], ['flipchart', 1]]
+print(lps)
+print(lpc)
+for m in lps:
+        s=[m[0]]
+        print(s)
+print()
+for n in lpc:
+    c=[n[0]]
+    print(c)
+print()
+produs = "tableta"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat.")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "tv"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "smart_phone"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "laptop_tip1"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "desktop"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "tastatura"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "monitor32inch"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, " s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "flipchart"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+print()
+produs = "carioca"
+if produs in ["tv","laptop_tip1", "desktop","tastatura","monitor32inch", "flipchart"]:
+  print (produs, "s-a comandat")
+else:
+  print (produs, "nu s-a comandat.")
+
+
+#5. Să se creeze o listă de dicționare cu următoarele chei: id, denumire, pret și cantitate pentru produsele: televizor, laptop, frigider.
+#lista = [{"id":1, "denumire":"tv", "pret":3500, "cantitate":30}, {"id":2, "denumire":"laptop", "pret":10000, "cantitate":65}, {"id":3, "denumire":"frigider", "pret":2500, "cantitate":48}]
+#Dacă produsele au pretul mai mare decât 5000 sau cantitatea este mai mare decat 20, să se reduca pretul cu 5%.
+
+lista = [{"id": 1, "denumire": "tv", "pret": 3500, "cantitate": 30}, {"id": 2, "denumire": "laptop", "pret": 10000, "cantitate": 65}, {"id": 3, "denumire": "frigidet", "pret": 2500, "cantitate": 48}]
+print(lista)
+for p in lista:
+    if p["pret"] > 5000 or p["cantitate"] > 20:
+        p["pret"] = p["pret"] - p["pret"] * 0.05
+        continue
+print()
+print(lista)
+
+
+
+#7. Sa se deschida fisierul csv clienti_leasing si sa se stocheze in 3 liste valorile din coloanele name_client, venit_per_year_ron si description. 
+#Sa se determine de cate ori apare produsul bancar 'CAMIN SUPER BCR - TL  dob. fixa 1 an - dob. referinta  var. ulterior IND EUR' in coloana descriere
+
+import pandas as pd
+df = pd.read_csv('clienti_leasing.csv')
+print(df)
+print()
+numeClient = list(df.NAME_CLIENT)
+print(numeClient)
+print()
+venitAnualRon=list(df.VENIT_PER_YEAR_RON)
+print(venitAnualRon)
+print()
+descriere=list(df.DESCRIPTION)
+print(descriere)
+print()
+print(descriere.count('CAMIN SUPER BCR - TL  dob. fixa 1 an - dob. referinta  var. ulterior IND EUR'))

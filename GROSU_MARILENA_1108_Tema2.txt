@@ -1,0 +1,176 @@
+//MongoDB
+
+//1. Să se afișeze toți clienții care au leasing în EUR.
+db.clienti_leasing.find({ MONEDA: "EUR" }, {_id:0})
+
+
+//2. Să se afișeze numele, profesia, varsta și suma din depozit pentru clienții care au în depozite mai mult de 10000 lei.
+db.clienti_leasing.find({SUMA_DEPOZIT:{$gt: 10000}}, {NUME_CLIENT:1, PROFESIA:1, VARSTA:1, SUMA_DEPOZIT:1, _id:0}) 
+
+
+//3. Afișați clienții (nume, varsta, suma credit, descriere) care au credite de tipul “DIVERS”.
+db.clienti_leasing.find({DESCRIERE: /DIVERS/i }, {NUME_CLIENT:1, VARSTA:1, VAL_CREDITE_RON :1, DESCRIERE:1, _id:0}) 
+
+
+//4. Afișați clienții cu vârsta cuprinsă între 25 si 35 de ani care au credite mai mari decât 20.000 lei.
+db.clienti_leasing.find({$and: [{VAL_CREDITE_RON:{$lt: -20000}}, {VARSTA:{$gt: 25, $lt: 35}}, {MONEDA:"ROL"}]}, { _id:0}) 
+
+
+//5. Să se afișeze numele, profesia, suma solicitată pentru clienții care au gradul de fidelitate =2. Ordonați crescător în funcție de vârstă.
+db.clienti_leasing.find({FIDELITATE:2}, {NUME_CLIENT:1, PROFESIA:1, SUMA_SOLICITATA:1, _id:0}).sort({VARSTA:1})
+
+
+//6. Afișați valoarea totală a creditelor pe fiecare profesie. Ordonați descrescător în funcție de valoarea totată a creditelor.
+db.clienti_leasing.aggregate(
+   [ {$group : {
+         _id: { Profesie: "$PROFESIA"},
+           Valoare_Totala_Credite: { $sum: "$VAL_CREDITE_RON" }
+       
+               }
+      },
+           
+        { $sort: { Valoare_Totala_Credite: -1 } }
+   ])
+
+
+
+//7. Afișați numărul de clienți și valoarea medie solicitată în funcție de starea civilă pentru clienții cu vârsta între 30 – 40 de ani.
+db.clienti_leasing.aggregate(
+   [ {$match:    {VARSTA: { $gt: 30, $lt: 40 } } },
+     {$group : {
+         _id: { Stare_Civila: "$STARE_CIVILA"},
+         Numar_Clienti: {$sum: "$ID_CLIENT"},
+         Valoare_Medie_Solicitata: { $avg: "$SUMA_SOLICITATA" },
+               }
+      },
+    
+    { $sort: { Valoare_Medie_Solicitata: 1 } }
+           
+   ])
+   
+
+//8. Grupați clienții în 5 containere de tip bucket în funcție de suma solicitată.
+db.clienti_leasing.aggregate( [
+ {
+    $bucket: {
+      groupBy: "$SUMA_SOLICITATA",
+      boundaries: [ 0, 1500, 2000, 2500, 30000],
+      default: "Other",
+      output: {
+          "Nr_total": {$sum: 1},
+          "Clientii care au solicitat suma": { $push: { Nume_Client: "$NUME_CLIENT", Varsta: "$VARSTA", Stare_Civila: "$STARE_CIVILA", Valoare_Solicitata:"$SUMA_SOLICITATA" }}
+      }
+    }
+  }
+] )
+
+
+
+//9. Realizați 2 fluxuri de agregare (cu comanda $facet) prin care clienții să fie grupați în funcție de starea civilă și separat în funcție de sex. 
+db.clienti_leasing.aggregate(
+    [{        
+$facet: {
+            "STARE_CIVILA":
+                [{
+                    $bucket: {
+      groupBy: "$SUMA_SOLICITATA",
+      boundaries: [ 0, 1500, 2000, 2500, 30000],
+      default: "Other",
+      output: {
+          "Nr_total": {$sum: 1},
+          "Clientii necasatoriti care au solicitat un imprumut": {$sum : {$cond: { if: { $eq: [ "$STARE_CIVILA", "N" ] }, then: 1, else: 0 }}},
+          "Clientii casatoriti care au solicitat un imprumut": {$sum : {$cond: { if: { $eq: [ "$STARE_CIVILA", "C" ] }, then: 1, else: 0 }}},
+          "Clientii divortati care au solicitat un imprumut": {$sum : {$cond: { if: { $eq: [ "$STARE_CIVILA", "D" ] }, then: 1, else: 0 }}}
+      }
+    }
+                }],
+            "SEX": [{
+                   $bucket: {
+      groupBy: "$SUMA_SOLICITATA",
+      boundaries: [ 0, 1500, 2000, 2500, 30000],
+      default: "Other",
+      output: {
+          "Nr_total": {$sum: 1},
+          "Femeile care au solicitat un imprumut": {$sum : {$cond: { if: { $eq: [ "$SEX", "F" ] }, then: 1, else: 0 }}},
+          "Barbatii care au solicitat un imprumut": {$sum : {$cond: { if: { $eq: [ "$SEX", "M" ] }, then: 1, else: 0 }}}
+      }
+    }
+                }]      
+        }
+    }])
+
+
+
+
+
+//Python – Oracle
+
+//1. Să se returneze într-un df componenta, anul de fabricatie și pretul manoperei pentru autoturismele Ford și Jeep. Pe setul din df, majorați cu 10% pretul manoperei pentru autoturismele fabricate inainte de 2010 și care au componenta BATTERY defectă. Salvați modificările într-un fișier .csv.
+
+import cx_Oracle
+import pandas as pd
+from pprint import pprint
+connection = cx_Oracle.connect("student_ps", "oracle", "37.120.250.20/oracle")
+query = """SELECT componenta, an_fabricatie, pret_manopera from t_clienti_daune where marca in ('FORD', 'JEEP')"""
+df = pd.read_sql(query, con=connection, params={})
+pprint (df.loc[(df['AN_FABRICATIE'] < 2010) & (df['COMPONENTA'] =='BATTERY'), 'PRET_MANOPERA'])
+df.loc[(df['AN_FABRICATIE'] < 2010) & (df['COMPONENTA'] =='BATTERY'), 'PRET_MANOPERA']=df.loc[(df['AN_FABRICATIE'] < 2010) & (df['COMPONENTA'] =='BATTERY'), 'PRET_MANOPERA']*1.10
+pprint(df.loc[(df['AN_FABRICATIE'] < 2010) & (df['COMPONENTA'] =='BATTERY'), 'PRET_MANOPERA'])
+df.to_csv('clienti_daune_modificari.csv')
+
+
+//2. Încărcați într-un df marca, modelul, valoarea medie și numărul de daune pe fiecare model și marcă. Afișați numărul de autoturisme pentru care valoarea medie depășește 400 lei. Reprezentați grafic modelele care au înregistrat mai mult de 200 de daune.
+
+import matplotlib.pyplot as plt
+query = """SELECT marca, model, avg(valoare_dauna) as valoare_medie, count(dauna) as nr_dauna from t_clienti_daune group by marca, model"""
+df1 = pd.read_sql(query, con=connection, params={})
+print(df1)
+print(df1[df1["VALOARE_MEDIE"] > 400].count())
+print(df1['VALOARE_MEDIE'][df1['VALOARE_MEDIE'] > 400].count())
+df = df1.loc[:,["MODEL","NR_DAUNA"]][df1['NR_DAUNA'] > 200]
+df.sort_values().plot(kind='bar', color = 'lightpink')
+plt.show()
+
+
+
+//3. Încărcați într-un df  numele, suma solicitată, suma din depozite și fidelitatea clienților cu vârsta > 30 de ani care au solicitat un credit mai mare de 10.000 lei. Verificați în df dacă suma din depozit este mai mare decât suma solicitată și pentru acești clienți modificați fidelitatea în 5 (doar în df).
+
+import cx_Oracle
+import pandas as pd
+from pprint import pprint
+connection = cx_Oracle.connect("student_ps", "oracle", "37.120.250.20/oracle")
+query = """SELECT nume_client, suma_solicitata, suma_depozit, fidelitate from t_clienti_leasing where varsta>30 AND val_credite_ron>10.000"""
+df = pd.read_sql(query, con=connection, params={})
+pprint (df.loc[(df['suma_depozit'] > df['suma_solicitata']), 'fidelitate'])
+df.loc[(df['suma_depozit'] > df['suma_solicitata']) ,'fidelitate']=df.loc[(df['suma_depozit'] > df['suma_solicitata']), 5
+pprint(df.loc[(df['suma_depozit'] > df['suma_solicitata', 'fidelitate'])
+df.to_csv('clienti_daune_modificari.csv')
+
+
+
+//4. Încărcați într-un df  profesia, venitul anual, suma din depozite și suma solicitată pe fiecare profesie. În df adăugați o nouă coloană pentru a calcula gradul de îndatorare pe fiecare profesie (suma_solicitata/(venit_anual+suma_depozit)*100). 
+
+import cx_Oracle
+import pandas as pd
+from pprint import pprint
+connection = cx_Oracle.connect("student_ps", "oracle", "37.120.250.20/oracle")
+query = """SELECT profesia, avg(suma_solicitata) as avg_suma, avg(venit_anual) as avg_venitAnual, avg(suma_depozit) as avg_sumaDepozit  from t_clienti_leasing group by profesia"""
+df = pd.read_sql(query, con=connection, params={})
+print(df)
+df['Grad_Indatorare]=df['avg_suma'] / (df['avg_venitAnual']+df['avg_sumaDepozit]*100
+
+
+
+//5. Încărcați într-un df starea civilă, profesia și suma totală solicitată grupată în funcție de aceste atribute.  Introduceți de la tastatură profesia și vizualizați înregistrările returnate.
+
+import cx_Oracle
+import pandas as pd
+from pprint import pprint
+connection = cx_Oracle.connect("student_ps", "oracle", "37.120.250.20/oracle")
+query = """SELECT stare_civila, profesia, sum(suma_solicitata) as total_suma from t_clienti_leasing group by stare_civila, profesia"""
+df = pd.read_sql(query, con=connection, params={})
+print(df)
+print('Profesia: ')
+string = input()
+print(df[df['PROFESIA'] == string])
+
